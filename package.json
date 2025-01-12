@@ -1,15 +1,21 @@
 {
   "name": "koishi-plugin-nailong",
-  "description": "识别奶龙并警告的插件",
-  "version": "0.0.1",
+  "description": "识别奶龙的插件",
+  "version": "0.0.2",
   "main": "lib/index.js",
   "typings": "lib/index.d.ts",
   "files": [
     "lib",
-    "dist"
+    "dist",
+    "src"
   ],
-  "license": "MIT",
-  "scripts": {},
+  "contributors": [
+    "小舍 <DMB-codegang@users.noreply.github.com>"
+  ],
+  "scripts": {
+    "build": "tsc -b && koishi-console build"
+  },
+  "license": "GPL-3.0-only",
   "keywords": [
     "chatbot",
     "koishi",
@@ -18,5 +24,16 @@
   "devDependencies": {},
   "peerDependencies": {
     "koishi": "^4.17.11"
+  },
+  "koishi": {
+    "description": {
+      "zh": "识别奶龙的插件"
+    },
+    "service": {
+      "required": [
+        "http"
+      ]
+    },
+    "preview": true
   }
 }
