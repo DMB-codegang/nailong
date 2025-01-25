@@ -66,7 +66,7 @@ export function apply(ctx: Context, cfg: Config) {
 
     } else {
       img = await ctx.http(imgUrl, { responseType: 'arraybuffer' })
-      const res = await is_nailong(ctx, img, cfg)
+      const res = await is_nailong(ctx, img.data, cfg)
       let maxscore: number = 0;
       for (let i = 0; i < res.data.length; i++) {
         if (res.data[i].score * 100 > maxscore && res.data[i].class_name == 'nailong') {
