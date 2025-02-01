@@ -16,8 +16,8 @@
     "build": "tsc -b && koishi-console build"
   },
   "license": "GPL-3.0-only",
-  "homepage": "https://github.com/DMB-codegang/nailong",        // 主页
-  "repository": {                           // 源码仓库
+  "homepage": "https://github.com/DMB-codegang/nailong", 
+  "repository": {
     "type": "git",
     "url": "git+https://github.com/DMB-codegang/nailong.git"
   },
