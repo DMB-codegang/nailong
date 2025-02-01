@@ -3,7 +3,6 @@ import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { unlink, writeFile } from 'node:fs/promises'
 import { } from 'koishi-plugin-ffmpeg'
-import { console } from 'node:inspector'
 
 export const name = 'nailong'
 export const description = '识别奶龙的插件'
@@ -36,55 +35,55 @@ export const Config: Schema<Config> = Schema.intersect([
 export function apply(ctx: Context, cfg: Config) {
   ctx.on('message', async (session) => {
     const [img2] = h.select(session.content, "img");
-    console.log(img2)
-    const imgUrl = img2?.attrs.src;
-    let img;
-    if (ctx.ffmpeg && (img2.attrs.file).includes('.gif')) {
-      const gif = await ctx.http(imgUrl, { responseType: 'arraybuffer' })
-      const frames = await getGifFrameCountWithoutLib(Buffer.from(gif.data))
-      
-      let i = 1;
-      let maxscore: number = 0;
-      while(i <= frames){
-        const res = await gifToPng(ctx, gif.data, i)
-        const img = res.data
-        const res2 = await is_nailong(ctx, img, cfg)
-        for (let i = 0; i < res2.data.length; i++) {
-          if (res2.data[i].score * 100 > maxscore && res2.data[i].class_name == 'nailong') {
-            maxscore = res2.data[i].score * 100
+    if (img2?.attrs) {
+      const imgUrl = img2?.attrs.src;
+      let img;
+      if (ctx.ffmpeg && (img2.attrs.file).includes('.gif')) {
+        const gif = await ctx.http(imgUrl, { responseType: 'arraybuffer' })
+        const frames = await getGifFrameCountWithoutLib(Buffer.from(gif.data))
+
+        let i = 1;
+        let maxscore: number = 0;
+        while (i <= frames) {
+          const res = await gifToPng(ctx, gif.data, i)
+          const img = res.data
+          const res2 = await is_nailong(ctx, img, cfg)
+          for (let i = 0; i < res2.data.length; i++) {
+            if (res2.data[i].score * 100 > maxscore && res2.data[i].class_name == 'nailong') {
+              maxscore = res2.data[i].score * 100
+            }
+          }
+          if (maxscore > cfg.threshold) {
+            session.send(cfg.message[getRandomInt(0, cfg.message.length - 1)])
+            break
+          }
+          i = i + 2
+        }
+        if (cfg.dev) {
+          session.send(`gif共${frames}帧,跳帧后最高可能性为：${maxscore}`)
+        }
+
+      } else {
+        img = await ctx.http(imgUrl, { responseType: 'arraybuffer' })
+        const res = await is_nailong(ctx, img.data, cfg)
+        let maxscore: number = 0;
+        for (let i = 0; i < res.data.length; i++) {
+          if (res.data[i].score * 100 > maxscore && res.data[i].class_name == 'nailong') {
+            maxscore = res.data[i].score * 100
           }
         }
         if (maxscore > cfg.threshold) {
           session.send(cfg.message[getRandomInt(0, cfg.message.length - 1)])
-          break
         }
-        i=i+2
-      }
-      if (cfg.dev) {
-        session.send(`gif共${frames}帧,跳帧后最高可能性为：${maxscore}`)
-      }
-
-    } else {
-      img = await ctx.http(imgUrl, { responseType: 'arraybuffer' })
-      const res = await is_nailong(ctx, img.data, cfg)
-      let maxscore: number = 0;
-      for (let i = 0; i < res.data.length; i++) {
-        if (res.data[i].score * 100 > maxscore && res.data[i].class_name == 'nailong') {
-          maxscore = res.data[i].score * 100
+        if (cfg.dev) {
+          let ans = `图像中包含${res.data.length}个识别对象`
+          for (let i = 0; i < res.data.length; i++) {
+            ans += `\n第${i + 1}个识别对象的的坐标为(${res.data[i].box[0]}, ${res.data[i].box[1]})\n是${res.data[i].class_name}的可能性为${(res.data[i].score * 100).toFixed(2)}%`
+          }
+          session.send(ans)
         }
-      }
-      if (maxscore > cfg.threshold) {
-        session.send(cfg.message[getRandomInt(0, cfg.message.length - 1)])
-      }
-      if (cfg.dev) {
-        let ans = `图像中包含${res.data.length}个识别对象`
-        for (let i = 0; i < res.data.length; i++) {
-          ans += `\n第${i + 1}个识别对象的的坐标为(${res.data[i].box[0]}, ${res.data[i].box[1]})\n是${res.data[i].class_name}的可能性为${(res.data[i].score * 100).toFixed(2)}%`
-        }
-        session.send(ans)
       }
     }
-
   })
 }
 
